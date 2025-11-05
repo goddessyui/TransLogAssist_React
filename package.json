@@ -1,0 +1,55 @@
+{
+  "name": "translog-assist",
+  "productName": "TransLog Assist",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "An application for transcriptionists to quickly upload audio files, extract their names and durations, and copy the information for logging purposes.",
+  "main": "electron.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "start-electron": "electron .",
+    "package": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^39.1.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.5.3",
+    "vite": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.translog.assist",
+    "files": [
+      "dist/**/*",
+      "electron.cjs",
+      "preload.js",
+      "_build_marker.json"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "afterPack": "scripts/after-pack.js",
+    "win": {
+      "icon": "build/icon.ico",
+      "target": ["nsis"]
+    },
+    "mac": {
+      "icon": "build/icon.icns",
+      "target": ["dmg"]
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": ["AppImage"]
+    }
+  }
+}

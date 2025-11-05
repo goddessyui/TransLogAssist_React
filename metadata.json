@@ -1,0 +1,5 @@
+{
+  "name": "TransLog Assist",
+  "description": "An application for transcriptionists to quickly upload audio files, extract their names and durations, and copy the information for logging purposes.",
+  "requestFramePermissions": []
+}
