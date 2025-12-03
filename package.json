@@ -2,17 +2,19 @@
   "name": "translog-assist",
   "productName": "TransLog Assist",
   "version": "1.0.0",
-  "type": "module",
   "description": "An application for transcriptionists to quickly upload audio files, extract their names and durations, and copy the information for logging purposes.",
   "main": "electron.cjs",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "start-electron": "electron .",
-    "package": "npm run build && electron-builder"
+    "package": "npm run build && electron-builder",
+    "build:clean": "rimraf release && electron-builder"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^11.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -23,6 +25,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^39.1.0",
     "electron-builder": "^24.13.3",
+    "terser": "^5.44.1",
     "typescript": "^5.5.3",
     "vite": "^7.2.0"
   },
@@ -38,18 +41,33 @@
       "output": "release",
       "buildResources": "build"
     },
-    "afterPack": "scripts/after-pack.js",
+    "afterPack": "scripts/after-pack.cjs",
     "win": {
       "icon": "build/icon.ico",
-      "target": ["nsis"]
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "portable": {
+      "artifactName": "${productName} Portable.exe"
     },
     "mac": {
       "icon": "build/icon.icns",
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     },
     "linux": {
       "icon": "build/icon.png",
-      "target": ["AppImage"]
+      "target": [
+        "AppImage"
+      ]
     }
   }
 }

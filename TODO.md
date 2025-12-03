@@ -1,0 +1,2 @@
+- [x] Modify App.tsx to set a fixed height of 60vh on the main element when displaying the upload form (audioFiles.length === 0) to ensure the footer remains fully viewable.
+- [x] Verify the layout: upload section is fixed at 60vh, footer is visible at the bottom with 10px padding.

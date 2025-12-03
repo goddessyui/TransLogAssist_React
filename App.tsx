@@ -1,12 +1,14 @@
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Header } from '@/components/Header';
-import { UploadForm } from '@/components/UploadForm';
-import { FileList } from '@/components/FileList';
+import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { CopyIcon, ShieldCheckIcon } from '@/components/IconComponents';
-import { InactivityWarningModal } from '@/components/InactivityWarningModal';
-import { InfoModal } from '@/components/InfoModal';
 import type { AudioFile, SortOption } from '@/types';
+
+// Lazy load components for better performance
+const Header = React.lazy(() => import('@/components/Header').then(module => ({ default: module.Header })));
+const UploadForm = React.lazy(() => import('@/components/UploadForm').then(module => ({ default: module.UploadForm })));
+const FileList = React.lazy(() => import('@/components/FileList').then(module => ({ default: module.FileList })));
+const InactivityWarningModal = React.lazy(() => import('@/components/InactivityWarningModal').then(module => ({ default: module.InactivityWarningModal })));
+const InfoModal = React.lazy(() => import('@/components/InfoModal').then(module => ({ default: module.InfoModal })));
 
 // Natural sort comparator to correctly sort strings with numbers
 const naturalSortComparator = (a: string, b: string): number => {
@@ -337,151 +339,153 @@ const App: React.FC = () => {
   // --- End Logic ---
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div className="container">
-        <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Header onInfoClick={() => setShowInfoModal(true)} />
-          <main style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {audioFiles.length === 0 ? (
-              <UploadForm onFilesSelected={handleFilesSelected} isProcessing={isProcessing} progress={progress} />
-            ) : (
-              <FileList 
-                files={audioFiles} 
-                onCopyAndClear={handleCopyAndClear}
-                sortOrder={sortOrder}
-                onSortChange={handleSortChange}
-                // Removed onReorder as manual mode is deprecated
-                // onReorder={handleReorderFiles}
-                onStartOver={handleStartOver}
-              />
+    <Suspense fallback={<div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="container">
+          <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <Header onInfoClick={() => setShowInfoModal(true)} />
+            <main style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {audioFiles.length === 0 ? (
+                <UploadForm onFilesSelected={handleFilesSelected} isProcessing={isProcessing} progress={progress} lastCopied={lastCopied} />
+              ) : (
+                <FileList
+                  files={audioFiles}
+                  onCopyAndClear={handleCopyAndClear}
+                  sortOrder={sortOrder}
+                  onSortChange={handleSortChange}
+                  // Removed onReorder as manual mode is deprecated
+                  // onReorder={handleReorderFiles}
+                  onStartOver={handleStartOver}
+                />
+              )}
+            </main>
+            {lastCopied && audioFiles.length === 0 && (
+              <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={copyLastList}
+                  className="copy-last-btn"
+                  aria-label="Copy the last generated list to clipboard"
+                >
+                  <CopyIcon />
+                  Copy Last List
+                </button>
+              </div>
             )}
-          </main>
-        </div>
-        {lastCopied && audioFiles.length === 0 && (
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
-            <button
-              onClick={copyLastList}
-              className="copy-last-btn"
-              aria-label="Copy the last generated list to clipboard"
-            >
-              <CopyIcon />
-              Copy Last List
-            </button>
           </div>
-        )}
-        <footer style={{ textAlign: 'center', marginTop: '1rem' }}>
+        </div>
+        <footer style={{ textAlign: 'center', marginTop: '5px', marginBottom: '5px'}}>
            <div className="hipaa-banner">
             <ShieldCheckIcon />
             <p style={{ textAlign: 'left', margin: 0 }}>
               <strong>Designed for Security & Privacy:</strong> All files are processed locally on your computer and are never uploaded online.
             </p>
           </div>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '1rem' }}>
-            © {new Date().getFullYear()} <strong style={{ color: '#35C5CF' }}>TransLog Assist</strong>. For <strong style={{ color: '#35C5CF' }}>HSRC and FACI team</strong> use only. Do not duplicate. Do not sell.
+          <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '5px', marginBottom: '5px' }}>
+            © {new Date().getFullYear()} <strong style={{ color: '#35C5CF' }}>TransLog Assist</strong>. For <strong style={{ color: '#35C5CF' }}>team</strong> use only. Do not duplicate. Do not sell.
           </p>
         </footer>
-      </div>
 
-      {showToast && (
-        <div role="alert" className="toast">
-          {showToast}
-        </div>
-      )}
+        {showToast && (
+          <div role="alert" className="toast">
+            {showToast}
+          </div>
+        )}
 
-      {showInfoModal && (
-        <InfoModal onClose={() => setShowInfoModal(false)} />
-      )}
+        {showInfoModal && (
+          <InfoModal onClose={() => setShowInfoModal(false)} />
+        )}
 
-      {showInactivityModal && (
-        <InactivityWarningModal 
-          onContinue={handleContinueSession}
-          onClear={handleClearSession}
-          countdownSeconds={30}
-        />
-      )}
+        {showInactivityModal && (
+          <InactivityWarningModal
+            onContinue={handleContinueSession}
+            onClear={handleClearSession}
+            countdownSeconds={30}
+          />
+        )}
 
-      <style>{`
-        .container {
-          max-width: 1024px;
-          margin-left: auto;
-          margin-right: auto;
-          padding: 1rem; /* Existing: 1rem vertical padding. */
-          flex: 1; /* Allow container to grow within the 100vh app */
-          display: flex;
-          flex-direction: column;
-        }
-        @media (max-width: 640px) {
+        <style>{`
           .container {
-            padding: 1rem;
+            max-width: 1024px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
           }
-        }
-        .card {
-          background-color: #fff;
-          border-radius: 1rem;
-          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-          border: 1px solid #DBEFF5;
-        }
-        .copy-last-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          background-color: #fff;
-          color: #334155;
-          border-radius: 0.5rem;
-          border: 1px solid #81C9F3;
-          box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        .copy-last-btn:hover {
-          background-color: #DBEFF5;
-        }
-        .hipaa-banner {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.75rem;
-          font-size: 0.75rem;
-          color: #334155;
-          background-color: #DBEFF5;
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          max-width: 512px;
-          margin-left: auto;
-          margin-right: auto;
-          border: 1px solid #81C9F3;
-        }
-        .hipaa-banner svg {
-          width: 2rem;
-          height: 2rem;
-          flex-shrink: 0;
-          color: #16a34a;
-        }
-        .toast {
-          position: fixed;
-          bottom: 1.25rem;
-          right: 1.25rem;
-          background-color: #1e293b;
-          color: #fff;
-          padding: 0.75rem 1.25rem;
-          border-radius: 0.5rem;
-          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
-          z-index: 100;
-          animation: toast-in 0.3s ease-out forwards;
-        }
-        @keyframes toast-in {
-          from {
-            opacity: 0;
-            transform: translateY(1rem);
+          @media (max-width: 640px) {
+            .container {
+              padding: 1rem;
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+          .card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #DBEFF5;
           }
-        }
-      `}</style>
-    </div>
+          .copy-last-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #fff;
+            color: #334155;
+            border-radius: 0.5rem;
+            border: 1px solid #81C9F3;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+          .copy-last-btn:hover {
+            background-color: #DBEFF5;
+          }
+          .hipaa-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: #334155;
+            background-color: #DBEFF5;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            max-width: 512px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid #81C9F3;
+          }
+          .hipaa-banner svg {
+            width: 2rem;
+            height: 2rem;
+            flex-shrink: 0;
+            color: #16a34a;
+          }
+          .toast {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            background-color: #1e293b;
+            color: #fff;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+            z-index: 100;
+            animation: toast-in 0.3s ease-out forwards;
+          }
+          @keyframes toast-in {
+            from {
+              opacity: 0;
+              transform: translateY(1rem);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
+      </div>
+    </Suspense>
   );
 };
 

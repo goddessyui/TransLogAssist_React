@@ -8,6 +8,17 @@ import { fileURLToPath } from 'url';
 export default defineConfig({
   plugins: [react()],
   base: './',
+  build: {
+    minify: 'terser',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './'),

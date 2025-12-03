@@ -5,11 +5,12 @@ interface UploadFormProps {
   onFilesSelected: (files: FileList) => void;
   isProcessing: boolean;
   progress: { current: number, total: number } | null;
+  lastCopied: string;
 }
 
 const accentColor = '#35C5CF';
 
-export const UploadForm: React.FC<UploadFormProps> = ({ onFilesSelected, isProcessing, progress }) => {
+export const UploadForm: React.FC<UploadFormProps> = ({ onFilesSelected, isProcessing, progress, lastCopied }) => {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
@@ -51,9 +52,9 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onFilesSelected, isProce
     <div style={{ textAlign: 'center' }}>
       <div style={{ marginBottom: '1rem' }}> {/* Reduced from 1.5rem */}
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', lineHeight: '1.2' }}> {/* Reduced from 1.75rem */}
-          Fast file logs for <span style={{ color: accentColor }}>HSRC & FACI team</span>
+          Fast file logs
         </h1>
-        <p style={{ color: '#4b5563', maxWidth: '42rem', margin: '0.5rem auto 0', fontSize: '1rem', lineHeight: 1.5 }}>
+        <p style={{ color: '#4b5563', maxWidth: '42rem', margin: '0.5rem auto 0', fontSize: '1rem', lineHeight: 1.5, visibility: lastCopied ? 'hidden' : 'visible' }}>
           Upload audio files to automatically extract their names and durations, ready to be copied into your log.
         </p>
       </div>
